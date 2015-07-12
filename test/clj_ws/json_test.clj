@@ -9,11 +9,19 @@
   (fn [json-result]
     (println "json result keys")
     (doseq [keyval json-result]
-      (prn (get keyval 0)))
+      (prn (get keyval 0))
+      (prn (get keyval 1))
+      )
     (println "expected keys")
     (doseq [keyval expected]
       (prn (get keyval 0))
-      (is (not (nil? (get expected (get keyval 0)))))
+      (prn (get keyval 1))
+      (is
+        (and
+          (not (nil? (get expected (get keyval 0))))
+          (is (== (get json-result (get keyval 1)) (get expected (get keyval 1))))
+          )
+        )
       )
 
     )
