@@ -13,6 +13,7 @@
 (def array-end-token-char (Character/valueOf (.charAt "]" 0)))
 (def identifier-delimiter-token-char (Character/valueOf (.charAt ":" 0)))
 (def quote-char (Character/valueOf (.charAt "\"" 0)))
+(def array-element-delimiter-char (Character/valueOf (.charAt "," 0)))
 
 ; {"key": "value"}
 
@@ -35,17 +36,41 @@
 (defn consume-token
   [input depth state json-value value-builder]
   (def next-char (read-char input))
-  (prn (str "json-value: " json-value ", in state: " state))
+  (prn (str "json-value: " json-value ", in state: " state ", next-char: " next-char ", value-builder: " (.toString value-builder)))
   (case state
     "init" (if (.equals next-char object-start-token-char)
            (consume-token input (+ 1 depth) key-start {} value-builder)
 
              (if (.equals next-char array-start-token-char)
                (consume-token input depth array-start [] value-builder)
-
-
-
            (throw (RuntimeException. (str "invalid json: " (.toString next-char))))))
+    "array-start"
+    (if-not (.equals next-char array-end-token-char)
+      (do
+        (if-not (.equals next-char array-element-delimiter-char)
+          (do
+            (append-char value-builder next-char)
+            (consume-token input depth array-start json-value value-builder)
+            )
+
+          (do
+            (def array-element (.toString value-builder))
+            (.setLength value-builder 0)
+            (def updated-vector (concat json-value [array-element]))
+            (consume-token input depth array-start updated-vector value-builder)
+            updated-vector
+            )
+          )
+        )
+      (do
+        (def array-element (.toString value-builder))
+        (.setLength value-builder 0)
+        (def updated-vector (concat json-value [array-element]))
+        (prn "returning json array value: " updated-vector)
+        updated-vector
+        )
+
+      )
     "key-start"
     (if-not (.equals next-char identifier-delimiter-token-char)
 

@@ -4,25 +4,41 @@
   (:require [clojure.test :refer :all]
             [clj-ws.json :refer :all]))
 
+(defn validate-json-array
+  [json-result expected]
+  (prn "expected: " expected (type expected))
+  (prn "actual: " json-result (type json-result))
+  (is (== (count json-result) (count expected)))
+  )
+
+(defn validate-json-object
+  [json-result expected]
+  (println "json result key/vals")
+  (doseq [keyval json-result]
+    (prn (get keyval 0))
+    (prn (get keyval 1))
+    )
+  (println "expected key/vals")
+  (doseq [keyval expected]
+    (prn (get keyval 0))
+    (prn (get keyval 1))
+    (is
+      (and
+        (not (nil? (get json-result (get keyval 0))))
+        (is (true? (.equals (get json-result (get keyval 0)) (get expected (get keyval 0)))))
+        )
+      )
+    )
+  )
+
 (defn get-json-result-handler
   [expected]
   (fn [json-result]
-    (println "json result key/vals")
-    (doseq [keyval json-result]
-      (prn (get keyval 0))
-      (prn (get keyval 1))
+    (if (instance? clojure.lang.PersistentArrayMap json-result)
+      (validate-json-object json-result expected)
+      (validate-json-array json-result expected)
       )
-    (println "expected key/vals")
-    (doseq [keyval expected]
-      (prn (get keyval 0))
-      (prn (get keyval 1))
-      (is
-        (and
-          (not (nil? (get json-result (get keyval 0))))
-          (is (true? (.equals (get json-result (get keyval 0)) (get expected (get keyval 0)))))
-          )
-        )
-      )
+
 
     )
   )
@@ -37,11 +53,11 @@
     (validate-json-parsing "{\"1\":2}" {"1" "2"})
     ))
 
-;(deftest parse-simple-json-array
-;  (testing "Parse single json array"
-;    (validate-json-parsing "[1,2,3,4]" [1,2,3,4])
-;    ))
-;
+(deftest parse-simple-json-array
+  (testing "Parse single json array"
+    (validate-json-parsing "[1,2,3,4]" [1,2,3,4])
+    ))
+
 ;(deftest parse-complex-single-depth-json-object
 ;  (testing "Parse complex single-depth json object"
 ;    (validate-json-parsing "{\"foo\": 1234, \"bar\": [1,23,4,6]" {:foo "bar" :bar [1, 23, 4, 6]})
