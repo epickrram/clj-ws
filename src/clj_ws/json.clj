@@ -6,11 +6,19 @@
 (def object-start "object-start")
 (def key-start "key-start")
 (def value-start "value-start")
+(def array-start "array-start")
 (def object-start-token-char (Character/valueOf (.charAt "{" 0)))
 (def object-end-token-char (Character/valueOf (.charAt "}" 0)))
+(def array-start-token-char (Character/valueOf (.charAt "[" 0)))
+(def array-end-token-char (Character/valueOf (.charAt "]" 0)))
 (def identifier-delimiter-token-char (Character/valueOf (.charAt ":" 0)))
 
-; {"key"; "value"}
+; {"key": "value"}
+
+; read first token
+; { -> start of object
+; [ -> start of array
+; _ -> start of identifier/simple value
 
 (defn read-char
   [input]
@@ -30,7 +38,13 @@
   (case state
     "init" (if (.equals next-char object-start-token-char)
            (consume-token input (+ 1 depth) key-start {} value-builder handler-func)
-           (throw (RuntimeException. (str "invalid json: " (.toString next-char)))))
+
+             (if (.equals next-char array-start-token-char)
+               (consume-token input depth array-start [] value-builder handler-func)
+
+
+
+           (throw (RuntimeException. (str "invalid json: " (.toString next-char))))))
     "key-start"
     (if-not (.equals next-char identifier-delimiter-token-char)
 
@@ -41,12 +55,12 @@
         )
 
       ; start building value
-      ; TODO - this should call a function to return the value, then put it in the map
       (do
-        (def updated-value (merge json-value {(.toString value-builder) nil}))
+        (def identifier (.toString value-builder))
         (.setLength value-builder 0)
-        (consume-token input depth value-start updated-value value-builder handler-func)
-
+        ; todo - should pass new map?
+        (merge json-value {(.toString value-builder)
+                           (consume-token input depth value-start {} value-builder handler-func)})
         )
       )
     "value-start"
@@ -58,10 +72,10 @@
         )
 
       (do
-;        (def updated-value (merge json-value {(.toString value-builder) nil}))
         (prn (str "value is " (.toString value-builder)))
+        (def value (.toString value-builder))
         (.setLength value-builder 0)
-        (consume-token input depth value-start json-value value-builder handler-func)
+        value
 
         )
       )
@@ -73,5 +87,7 @@
 (defn parse-json
   [input-source handler-func]
   (let [input (clojure.java.io/reader input-source)]
-    (consume-token input 0 init nil (StringBuilder. "") handler-func)
+    (def json-result (consume-token input 0 init nil (StringBuilder. "") handler-func))
+    (prn (str "output from parser: " json-result))
+    (handler-func json-result)
     ))

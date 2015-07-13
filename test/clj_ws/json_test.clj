@@ -27,7 +27,38 @@
     )
   )
 
-(deftest a-test
+(defn validate-json-parsing
+  [serialised-json expected-output]
+  (parse-json (new java.io.StringReader serialised-json) (get-json-result-handler expected-output))
+  )
+
+(deftest parse-simple-json-object
   (testing "Parse single json object"
-    (parse-json (new java.io.StringReader "{1: 2}") (get-json-result-handler {:1 2}))
+    (validate-json-parsing "{\"1\":2}" {:1 2})
     ))
+
+;(deftest parse-simple-json-array
+;  (testing "Parse single json array"
+;    (validate-json-parsing "[1,2,3,4]" [1,2,3,4])
+;    ))
+;
+;(deftest parse-complex-single-depth-json-object
+;  (testing "Parse complex single-depth json object"
+;    (validate-json-parsing "{\"foo\": 1234, \"bar\": [1,23,4,6]" {:foo "bar" :bar [1, 23, 4, 6]})
+;    ))
+;
+;(deftest parse-complex-nested-json-object
+;  (testing "Parse complex nested json object"
+;    (validate-json-parsing "{\"foo\": 1234, \"bar\": {\"nest\": 1.23456}" {:foo "bar" :bar {:nest 1.23456}})
+;    ))
+;
+;(deftest whitespace
+;  (testing "Strip whitespace"
+;    (validate-json-parsing "{\"foo\"   :    1234  ,     \"bar\"    :    {    \"nest\"   :  1.23456   }"
+;      {:foo "bar" :bar {:nest 1.23456}})
+;    ))
+;
+;(deftest handle-unquoted-identifiers
+;  (testing "Parse single json object"
+;    (validate-json-parsing "{\"1\":2}" {:1 2})
+;    ))
