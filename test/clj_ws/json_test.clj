@@ -7,19 +7,19 @@
 (defn get-json-result-handler
   [expected]
   (fn [json-result]
-    (println "json result keys")
+    (println "json result key/vals")
     (doseq [keyval json-result]
       (prn (get keyval 0))
       (prn (get keyval 1))
       )
-    (println "expected keys")
+    (println "expected key/vals")
     (doseq [keyval expected]
       (prn (get keyval 0))
       (prn (get keyval 1))
       (is
         (and
-          (not (nil? (get expected (get keyval 0))))
-          (is (== (get json-result (get keyval 1)) (get expected (get keyval 1))))
+          (not (nil? (get json-result (get keyval 0))))
+          (is (true? (.equals (get json-result (get keyval 0)) (get expected (get keyval 0)))))
           )
         )
       )
@@ -34,7 +34,7 @@
 
 (deftest parse-simple-json-object
   (testing "Parse single json object"
-    (validate-json-parsing "{\"1\":2}" {:1 2})
+    (validate-json-parsing "{\"1\":2}" {"1" "2"})
     ))
 
 ;(deftest parse-simple-json-array
