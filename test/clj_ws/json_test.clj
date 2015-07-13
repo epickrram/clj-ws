@@ -6,10 +6,13 @@
 
 (defn validate-json-array
   [json-result expected]
-  (prn "expected: " expected (type expected))
-  (prn "actual: " json-result (type json-result))
-  (is (== (count json-result) (count expected)))
-  )
+  (prn "expected: " expected (type expected) " as array " (into-array expected))
+  (prn "actual: " json-result (type json-result) " as array " (into-array json-result))
+  (prn "arrays equal? " (java.util.Arrays/equals (into-array json-result) (into-array expected)))
+    (is
+      (true? (java.util.Arrays/equals (into-array json-result) (into-array expected)))
+      )
+    )
 
 (defn validate-json-object
   [json-result expected]
@@ -50,7 +53,7 @@
 
 (deftest parse-simple-json-object
   (testing "Parse single json object"
-    (validate-json-parsing "{\"1\":2}" {"1" "2"})
+    (validate-json-parsing "{\"1\":2}" {"1" 2})
     ))
 
 (deftest parse-simple-json-array

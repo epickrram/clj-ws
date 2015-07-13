@@ -14,6 +14,8 @@
 (def identifier-delimiter-token-char (Character/valueOf (.charAt ":" 0)))
 (def quote-char (Character/valueOf (.charAt "\"" 0)))
 (def array-element-delimiter-char (Character/valueOf (.charAt "," 0)))
+(def integer-pattern (re-pattern "^[0-9]+$"))
+(def double-pattern (re-pattern "^[0-9\\.]+$"))
 
 ; {"key": "value"}
 
@@ -30,7 +32,18 @@
 (defn append-char
   [value-builder char-value]
   (.append value-builder char-value)
-  (prn (.toString value-builder))
+;  (prn (.toString value-builder))
+  )
+
+
+(defn typed-json-value
+  [string-rep]
+  (if (re-matches integer-pattern string-rep)
+      (Long/parseLong string-rep)
+    (if (re-matches double-pattern string-rep)
+        (Double/parseDouble string-rep)
+        string-rep
+    ))
   )
 
 (defn consume-token
@@ -54,7 +67,7 @@
             )
 
           (do
-            (def array-element (.toString value-builder))
+            (def array-element (typed-json-value (.toString value-builder)))
             (.setLength value-builder 0)
             (def updated-vector (concat json-value [array-element]))
             (consume-token input depth array-start updated-vector value-builder)
@@ -65,7 +78,7 @@
       (do
         (def array-element (.toString value-builder))
         (.setLength value-builder 0)
-        (def updated-vector (concat json-value [array-element]))
+        (def updated-vector (concat json-value [(typed-json-value array-element)]))
         (prn "returning json array value: " updated-vector)
         updated-vector
         )
@@ -103,7 +116,7 @@
         (prn (str "value is " (.toString value-builder)))
         (def value (.toString value-builder))
         (.setLength value-builder 0)
-        value
+        (typed-json-value value)
 
         )
       )
