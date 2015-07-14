@@ -6,9 +6,9 @@
 
 (defn validate-json-array
   [json-result expected]
-  (prn "expected: " expected (type expected) " as array " (into-array expected))
-  (prn "actual: " json-result (type json-result) " as array " (into-array json-result))
-  (prn "arrays equal? " (java.util.Arrays/equals (into-array json-result) (into-array expected)))
+;  (prn "expected: " expected (type expected) " as array " (into-array expected))
+;  (prn "actual: " json-result (type json-result) " as array " (into-array json-result))
+;  (prn "arrays equal? " (java.util.Arrays/equals (into-array json-result) (into-array expected)))
     (is
       (true? (java.util.Arrays/equals (into-array json-result) (into-array expected)))
       )
@@ -51,20 +51,20 @@
   (parse-json (new java.io.StringReader serialised-json) (get-json-result-handler expected-output))
   )
 
-(deftest parse-simple-json-object
-  (testing "Parse single json object"
-    (validate-json-parsing "{\"1\":2}" {"1" 2})
-    ))
-
-(deftest parse-simple-json-array
-  (testing "Parse single json array"
-    (validate-json-parsing "[1,2,3,4]" [1,2,3,4])
-    ))
-
-;(deftest parse-complex-single-depth-json-object
-;  (testing "Parse complex single-depth json object"
-;    (validate-json-parsing "{\"foo\": 1234, \"bar\": [1,23,4,6]" {:foo "bar" :bar [1, 23, 4, 6]})
+;(deftest parse-simple-json-object
+;  (testing "Parse single json object"
+;    (validate-json-parsing "{\"1\":2}" {"1" 2})
 ;    ))
+;
+;(deftest parse-simple-json-array
+;  (testing "Parse single json array"
+;    (validate-json-parsing "[1,2,3,4]" [1,2,3,4])
+;    ))
+
+(deftest parse-complex-single-depth-json-object
+  (testing "Parse complex single-depth json object"
+    (validate-json-parsing "{\"foo\":1234,\"bar\":[1,23,4,6]" {"foo" "bar" "bar" [1, 23, 4, 6]})
+    ))
 ;
 ;(deftest parse-complex-nested-json-object
 ;  (testing "Parse complex nested json object"

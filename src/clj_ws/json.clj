@@ -100,28 +100,42 @@
         (def identifier (.toString value-builder))
         (.setLength value-builder 0)
         ; todo - should pass new map?
-        (merge json-value {identifier
-                           (consume-token input depth value-start {} value-builder)})
+        (def latest-view (merge json-value {identifier
+                           (consume-token input depth init json-value value-builder)}))
+;        (consume-token input depth key-start latest-view value-builder)
+
+        latest-view
+
         )
       )
     "value-start"
-    (if-not (.equals next-char object-end-token-char)
-
+    (if (.equals next-char object-end-token-char)
       (do
-        (append-char value-builder next-char)
-        (consume-token input depth value-start json-value value-builder)
-        )
-
-      (do
-        (prn (str "value is " (.toString value-builder)))
         (def value (.toString value-builder))
         (.setLength value-builder 0)
         (typed-json-value value)
 
         )
+      (if (.equals next-char array-element-delimiter-char)
+        (do
+          (prn "deal with end of value")
+          (def value (.toString value-builder))
+          (.setLength value-builder 0)
+          (def typed-val (typed-json-value value))
+;          (consume-token input depth key-start (merge json-value {}))
+          typed-val
+          )
+      (do
+        (append-char value-builder next-char)
+        (consume-token input depth value-start json-value value-builder)
+        ))
+
+
       )
 
   ))
+
+;
 
 ;(prn (str "got me a token: " value-builder))
 
