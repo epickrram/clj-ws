@@ -54,7 +54,7 @@
   (testing "single element integer array"
     (is
       (=
-        (pj (new java.io.StringReader "[1234]"))
+        (pj (new java.io.StringReader "[1234]") nil nil)
         [1234]
         ))))
 
@@ -62,7 +62,7 @@
   (testing "multi element integer array"
     (is
       (=
-        (pj (new java.io.StringReader "[1234, 5678, 0, -1387, 3743847]"))
+        (pj (new java.io.StringReader "[1234, 5678, 0, -1387, 3743847]") nil nil)
         [1234, 5678, 0, -1387, 3743847]
         ))))
 
@@ -70,7 +70,7 @@
   (testing "single element string array"
     (is
       (=
-        (pj (new java.io.StringReader "[\"foobar\"]"))
+        (pj (new java.io.StringReader "[\"foobar\"]") nil nil)
         ["foobar"]
         ))))
 
@@ -78,7 +78,7 @@
   (testing "multi element mixed type array"
     (is
       (=
-        (pj (new java.io.StringReader "[1234, \"5678\", 0.3421, \"FOOBAR\", \"-3743.847\"]"))
+        (pj (new java.io.StringReader "[1234, \"5678\", 0.3421, \"FOOBAR\", \"-3743.847\"]") nil nil)
         [1234, "5678", 0.3421, "FOOBAR", "-3743.847"]
         ))))
 ;
@@ -92,6 +92,13 @@
 ;          ))))
 
 
+;(deftest parse-simple-json-object
+;  (testing "simple-json-object"
+;    (is
+;      (=
+;        (pj (new java.io.StringReader "{\"a\": 1}"))
+;        {"a" 1}
+;        ))))
 
 
 

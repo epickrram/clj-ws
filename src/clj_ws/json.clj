@@ -39,20 +39,20 @@
 (defn append-char
   [value-builder char-value]
   (.append value-builder char-value)
-;  (prn (.toString value-builder))
+  ;  (prn (.toString value-builder))
   )
 
 
 (defn typed-json-value
   [string-rep]
   (if (re-matches integer-pattern string-rep)
-      (Long/parseLong string-rep)
+    (Long/parseLong string-rep)
     (if (re-matches double-pattern string-rep)
-        (Double/parseDouble string-rep)
+      (Double/parseDouble string-rep)
       (if (re-matches string-pattern string-rep)
-            (.substring string-rep 1 (- (.length string-rep) 1))
-            string-rep
-            )
+        (.substring string-rep 1 (- (.length string-rep) 1))
+        string-rep
+        )
       )
     )
   )
@@ -63,11 +63,11 @@
   (prn (str "json-value: " json-value ", in state: " state ", next-char: " next-char ", value-builder: " (.toString value-builder)))
   (case state
     "init" (if (.equals next-char object-start-token-char)
-           (consume-token input (+ 1 depth) key-start {} value-builder)
+             (consume-token input (+ 1 depth) key-start {} value-builder)
 
              (if (.equals next-char array-start-token-char)
                (consume-token input depth array-start [] value-builder)
-           (throw (RuntimeException. (str "invalid json: " (.toString next-char))))))
+               (throw (RuntimeException. (str "invalid json: " (.toString next-char))))))
     "array-start"
     (if-not (.equals next-char array-end-token-char)
       (do
@@ -112,8 +112,8 @@
         (.setLength value-builder 0)
         ; todo - should pass new map?
         (def latest-view (merge json-value {identifier
-                           (consume-token input depth init json-value value-builder)}))
-;        (consume-token input depth key-start latest-view value-builder)
+                                            (consume-token input depth init json-value value-builder)}))
+        ;        (consume-token input depth key-start latest-view value-builder)
 
         latest-view
 
@@ -133,18 +133,17 @@
           (def value (.toString value-builder))
           (.setLength value-builder 0)
           (def typed-val (typed-json-value value))
-;          (consume-token input depth key-start (merge json-value {}))
+          ;          (consume-token input depth key-start (merge json-value {}))
           typed-val
           )
-      (do
-        (append-char value-builder next-char)
-        (consume-token input depth value-start json-value value-builder)
-        ))
-
+        (do
+          (append-char value-builder next-char)
+          (consume-token input depth value-start json-value value-builder)
+          ))
 
       )
 
-  ))
+    ))
 
 ;
 
@@ -169,6 +168,7 @@
   (or
     (match-char char-to-test array-element-delimiter-char)
     (match-char char-to-test array-end-token-char)
+    (match-char char-to-test identifier-delimiter-token-char)
     (match-char char-to-test null-char))
   )
 
@@ -182,44 +182,45 @@
     )
   )
 
-(defn pja
-  [input accumulator]
 
+
+(defn pj
+  [input-source state accumulator]
+  (def input (clojure.java.io/reader input-source))
   (def next-char (read-char input))
-;  (prn (str "pja: " (.toString next-char)))
 
-  (if (match-char next-char null-char)
+  (if (= state nil)
+    (if (match-char next-char array-start-token-char)
+      (do (pj input "array" []))
 
-    accumulator
+      (do
+        (prn "Not handling objects")
+        )
+      )
+    (if (= state "array")
+      (if (match-char next-char null-char)
 
-    (if (re-matches whitespace-pattern (.toString next-char))
-      (pja input accumulator)
-      (if (match-char next-char array-element-delimiter-char)
-        (concat accumulator [(pja input accumulator)])
-        (if (match-char next-char object-start-token-char)
-          (do
-            (prn "Not handling json object inside array just yet")
-            nil
-            )
-          (do
-            (concat accumulator [(typed-json-value (consume-scalar input (.toString next-char)))] (pja input []))
+        accumulator
+
+        (if (re-matches whitespace-pattern (.toString next-char))
+          (pj input "array" accumulator)
+          (if (match-char next-char array-element-delimiter-char)
+            (concat accumulator [(pj input "array" accumulator)])
+            (if (match-char next-char object-start-token-char)
+              (do
+                (prn "Not handling json object inside array just yet")
+                nil)
+              (do
+                (concat accumulator [(typed-json-value (consume-scalar input (.toString next-char)))] (pj input "array" [])))
+              )
             )
           )
         )
 
-      )
+      (if (= state "object")
+        (prn "objects not supported")
+        (prn (str "unknown state" state))
+        ))
 
     )
-  )
-
-(defn pj
-  [input-source]
-  (def input (clojure.java.io/reader input-source))
-  (def next-char (read-char input))
-  (if (match-char next-char array-start-token-char)
-    (do (pja input []))
-    (do
-      (prn "Not handling json object just yet")
-      nil
-      ))
   )
