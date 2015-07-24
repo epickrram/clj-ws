@@ -158,15 +158,21 @@
   (.equals expected actual)
   )
 
+
+(defn is-delimiter-char
+  [char-to-test]
+  (or
+    (match-char char-to-test array-element-delimiter-char)
+    (match-char char-to-test array-end-token-char)
+    (match-char char-to-test null-char)
+    (match-char char-to-test quote-char))
+  )
+
 (defn consume-scalar
   [input accumulator]
   (def next-char (read-char input))
   ; TODO any delimiter for scalar type (key, value, array elem)
-  (if (or
-        (match-char next-char array-element-delimiter-char)
-        (match-char next-char array-end-token-char)
-        (match-char next-char null-char)
-        (match-char next-char quote-char))
+  (if (is-delimiter-char next-char)
     accumulator
     (str accumulator next-char (consume-scalar input ""))
     )

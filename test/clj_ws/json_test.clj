@@ -53,13 +53,15 @@
 
 (deftest parse-single-element-array
   (testing "single element array"
-    (prn (pj (new java.io.StringReader "[1234]")))))
+    (is (= (pj (new java.io.StringReader "[1234]"))) [1234])))
 
 (deftest parse-multi-element-integer-array
   (testing "multi element integer array"
-    (prn (pj (new java.io.StringReader "[1234, 5678, 0, -1387, 3743847]")))))
+    (is (= (pj (new java.io.StringReader "[1234, 5678, 0, -1387, 3743847]"))) [1234, 5678, 0, -1387, 374847])))
 
-
+(deftest parse-mixed-type-multi-element-array
+  (testing "multi element mixed type array"
+    (is (= (pj (new java.io.StringReader "[1234, \"5678\", 0.3421, \"FOOBAR\", \"-3743.847\"]"))) [1234, "5678", 0.3421, "FOOBAR", "-3743.847"])))
 ;(deftest parse-simple-json-object
 ;  (testing "Parse single json object"
 ;    (validate-json-parsing "{\"1\":2}" {"1" 2})
