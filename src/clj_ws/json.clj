@@ -183,7 +183,6 @@
     accumulator
 
     (if (re-matches whitespace-pattern (.toString next-char))
-; TODO recurse
       (pja input accumulator)
       (if (match-char next-char array-element-delimiter-char)
         (concat accumulator [(pja input accumulator)])
