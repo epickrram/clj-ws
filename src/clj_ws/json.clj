@@ -168,6 +168,7 @@
   (or
     (match-char char-to-test array-element-delimiter-char)
     (match-char char-to-test array-end-token-char)
+    (match-char char-to-test object-end-token-char)
     (match-char char-to-test identifier-delimiter-token-char)
     (match-char char-to-test null-char))
   )
@@ -175,10 +176,12 @@
 (defn consume-scalar
   [input accumulator]
   (def next-char (read-char input))
-  ; TODO any delimiter for scalar type (key, value, array elem)
   (if (is-delimiter-char next-char)
     accumulator
-    (str accumulator next-char (consume-scalar input ""))
+    (if (= 0 (.length (.trim accumulator)))
+      (str next-char (consume-scalar input ""))
+      (str accumulator next-char (consume-scalar input ""))
+      )
     )
   )
 
@@ -191,10 +194,10 @@
 
   (if (= state nil)
     (if (match-char next-char array-start-token-char)
-      (do (pj input "array" []))
-
-      (do
-        (prn "Not handling objects")
+      (pj input "array" [])
+      (if (match-char next-char object-start-token-char)
+        (pj input "object" {})
+        (typed-json-value (consume-scalar input (.toString next-char)))
         )
       )
     (if (= state "array")
@@ -216,11 +219,12 @@
             )
           )
         )
-
       (if (= state "object")
-        (prn "objects not supported")
-        (prn (str "unknown state" state))
-        ))
-
+        (do
+          (def map-key (typed-json-value (consume-scalar input (.toString next-char))))
+          (merge accumulator {map-key (pj input nil nil)})
+          )
+        )
+      )
     )
   )

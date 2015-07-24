@@ -92,13 +92,13 @@
 ;          ))))
 
 
-;(deftest parse-simple-json-object
-;  (testing "simple-json-object"
-;    (is
-;      (=
-;        (pj (new java.io.StringReader "{\"a\": 1}"))
-;        {"a" 1}
-;        ))))
+(deftest parse-simple-json-object
+  (testing "simple-json-object"
+    (is
+      (=
+        (pj (new java.io.StringReader "{\"a\": 1}") nil nil)
+        {"a" 1}
+        ))))
 
 
 
