@@ -92,14 +92,22 @@
 ;          ))))
 
 
-(deftest parse-simple-json-object
-  (testing "simple-json-object"
+(deftest parse-simple-single-key-json-object
+  (testing "simple-single-key-json-object"
     (is
       (=
         (pj (new java.io.StringReader "{\"a\": 1}") nil nil)
         {"a" 1}
         ))))
 
+
+(deftest parse-simple-multiple-key-json-object
+  (testing "simple-multiple-key-json-object"
+    (is
+      (=
+        (pj (new java.io.StringReader "{\"a\": 1, \"b\": 3.14, \"c\": \"foobar\"}") nil nil)
+        {"a" 1 "b" 3.14 "c" "foobar"}
+        ))))
 
 
 

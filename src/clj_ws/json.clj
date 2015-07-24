@@ -220,9 +220,14 @@
           )
         )
       (if (= state "object")
-        (do
-          (def map-key (typed-json-value (consume-scalar input (.toString next-char))))
-          (merge accumulator {map-key (pj input nil nil)})
+        (if (match-char next-char null-char)
+          accumulator
+
+          (do
+            (def map-key (typed-json-value (consume-scalar input (.toString next-char))))
+            (def updated-map (merge accumulator {map-key (pj input nil nil)}))
+            (pj input "object" updated-map)
+            )
           )
         )
       )
