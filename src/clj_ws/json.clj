@@ -14,8 +14,10 @@
 (def identifier-delimiter-token-char (Character/valueOf (.charAt ":" 0)))
 (def quote-char (Character/valueOf (.charAt "\"" 0)))
 (def array-element-delimiter-char (Character/valueOf (.charAt "," 0)))
-(def integer-pattern (re-pattern "^[0-9]+$"))
-(def double-pattern (re-pattern "^[0-9\\.]+$"))
+(def null-char (Character/valueOf (.charAt "\u0001" 0)))
+(def integer-pattern (re-pattern "^[0-9\\-]+$"))
+(def double-pattern (re-pattern "^[0-9\\.\\-]+$"))
+(def whitespace-pattern (re-pattern "[\\s]+"))
 
 ; {"key": "value"}
 
@@ -26,7 +28,11 @@
 
 (defn read-char
   [input]
-  (Character/valueOf (char (.read input)))
+  (def int-value (.read input))
+  (if (== -1 int-value)
+    null-char
+    (Character/valueOf (char int-value)))
+
   )
 
 (defn append-char
@@ -146,3 +152,65 @@
     (prn (str "output from parser: " json-result))
     (handler-func json-result)
     ))
+
+(defn match-char
+  [expected actual]
+  (.equals expected actual)
+  )
+
+(defn consume-scalar
+  [input accumulator]
+  (def next-char (read-char input))
+  ; TODO any delimiter for scalar type (key, value, array elem)
+  (if (or
+        (match-char next-char array-element-delimiter-char)
+        (match-char next-char array-end-token-char)
+        (match-char next-char null-char)
+        (match-char next-char quote-char))
+    accumulator
+    (str accumulator next-char (consume-scalar input ""))
+    )
+  )
+
+(defn pja
+  [input accumulator]
+
+  (def next-char (read-char input))
+  (prn (str "pja: " (.toString next-char)))
+
+  (if (match-char next-char null-char)
+
+    accumulator
+
+    (if (re-matches whitespace-pattern (.toString next-char))
+; TODO recurse
+      (pja input accumulator)
+      (if (match-char next-char array-element-delimiter-char)
+        (concat accumulator [(pja input accumulator)])
+        (if (match-char next-char object-start-token-char)
+          (do
+            (prn "Not handling json object inside array just yet")
+            nil
+            )
+          (do
+            (concat accumulator [(typed-json-value (consume-scalar input (.toString next-char)))] (pja input []))
+            )
+          )
+        )
+
+      )
+
+    )
+  )
+
+(defn pj
+  [input-source]
+  (def input (clojure.java.io/reader input-source))
+  (def next-char (read-char input))
+  (if (match-char next-char array-start-token-char)
+    (do (pja input []))
+    (do
+      (prn "Not handling json object just yet")
+      nil
+      ))
+  )

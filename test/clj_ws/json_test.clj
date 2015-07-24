@@ -51,6 +51,15 @@
   (parse-json (new java.io.StringReader serialised-json) (get-json-result-handler expected-output))
   )
 
+(deftest parse-single-element-array
+  (testing "single element array"
+    (prn (pj (new java.io.StringReader "[1234]")))))
+
+(deftest parse-multi-element-integer-array
+  (testing "multi element integer array"
+    (prn (pj (new java.io.StringReader "[1234, 5678, 0, -1387, 3743847]")))))
+
+
 ;(deftest parse-simple-json-object
 ;  (testing "Parse single json object"
 ;    (validate-json-parsing "{\"1\":2}" {"1" 2})
@@ -61,10 +70,10 @@
 ;    (validate-json-parsing "[1,2,3,4]" [1,2,3,4])
 ;    ))
 
-(deftest parse-complex-single-depth-json-object
-  (testing "Parse complex single-depth json object"
-    (validate-json-parsing "{\"foo\":1234,\"bar\":[1,23,4,6]" {"foo" "bar" "bar" [1, 23, 4, 6]})
-    ))
+;(deftest parse-complex-single-depth-json-object
+;  (testing "Parse complex single-depth json object"
+;    (validate-json-parsing "{\"foo\":1234,\"bar\":[1,23,4,6]" {"foo" "bar" "bar" [1, 23, 4, 6]})
+;    ))
 ;
 ;(deftest parse-complex-nested-json-object
 ;  (testing "Parse complex nested json object"
