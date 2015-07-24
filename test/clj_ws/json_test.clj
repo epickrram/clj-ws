@@ -6,13 +6,13 @@
 
 (defn validate-json-array
   [json-result expected]
-;  (prn "expected: " expected (type expected) " as array " (into-array expected))
-;  (prn "actual: " json-result (type json-result) " as array " (into-array json-result))
-;  (prn "arrays equal? " (java.util.Arrays/equals (into-array json-result) (into-array expected)))
-    (is
-      (true? (java.util.Arrays/equals (into-array json-result) (into-array expected)))
-      )
+  ;  (prn "expected: " expected (type expected) " as array " (into-array expected))
+  ;  (prn "actual: " json-result (type json-result) " as array " (into-array json-result))
+  ;  (prn "arrays equal? " (java.util.Arrays/equals (into-array json-result) (into-array expected)))
+  (is
+    (true? (java.util.Arrays/equals (into-array json-result) (into-array expected)))
     )
+  )
 
 (defn validate-json-object
   [json-result expected]
@@ -42,7 +42,6 @@
       (validate-json-array json-result expected)
       )
 
-
     )
   )
 
@@ -51,17 +50,67 @@
   (parse-json (new java.io.StringReader serialised-json) (get-json-result-handler expected-output))
   )
 
-(deftest parse-single-element-array
-  (testing "single element array"
-    (is (= (pj (new java.io.StringReader "[1234]"))) [1234])))
+(deftest parse-single-element-integer-array
+  (testing "single element integer array"
+    (is
+      (=
+        (pj (new java.io.StringReader "[1234]"))
+        [1234]
+        ))))
 
 (deftest parse-multi-element-integer-array
   (testing "multi element integer array"
-    (is (= (pj (new java.io.StringReader "[1234, 5678, 0, -1387, 3743847]"))) [1234, 5678, 0, -1387, 374847])))
+    (is
+      (=
+        (pj (new java.io.StringReader "[1234, 5678, 0, -1387, 3743847]"))
+        [1234, 5678, 0, -1387, 3743847]
+        ))))
+
+(deftest parse-single-element-string-array
+  (testing "single element string array"
+    (is
+      (=
+        (pj (new java.io.StringReader "[\"foobar\"]"))
+        ["foobar"]
+        ))))
 
 (deftest parse-mixed-type-multi-element-array
   (testing "multi element mixed type array"
-    (is (= (pj (new java.io.StringReader "[1234, \"5678\", 0.3421, \"FOOBAR\", \"-3743.847\"]"))) [1234, "5678", 0.3421, "FOOBAR", "-3743.847"])))
+    (is
+      (=
+        (pj (new java.io.StringReader "[1234, \"5678\", 0.3421, \"FOOBAR\", \"-3743.847\"]"))
+        [1234, "5678", 0.3421, "FOOBAR", "-3743.847"]
+        ))))
+;
+;; TODO test that delimiter chars can be present in string values (ie. "foo,bar" is a valid string value)
+;(deftest string-value-containing-delimiter-chars
+;  (testing "string value containing delimiter chars"
+;      (is
+;        (=
+;          (pj (new java.io.StringReader "[\"a,b]c d\"]"))
+;          ["a,b]c d"]
+;          ))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+; OLD TESTS
+
 ;(deftest parse-simple-json-object
 ;  (testing "Parse single json object"
 ;    (validate-json-parsing "{\"1\":2}" {"1" 2})

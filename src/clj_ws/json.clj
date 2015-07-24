@@ -18,6 +18,7 @@
 (def integer-pattern (re-pattern "^[0-9\\-]+$"))
 (def double-pattern (re-pattern "^[0-9\\.\\-]+$"))
 (def whitespace-pattern (re-pattern "[\\s]+"))
+(def string-pattern (re-pattern "^\"[^\"]+\"$"))
 
 ; {"key": "value"}
 
@@ -48,8 +49,12 @@
       (Long/parseLong string-rep)
     (if (re-matches double-pattern string-rep)
         (Double/parseDouble string-rep)
-        string-rep
-    ))
+      (if (re-matches string-pattern string-rep)
+            (.substring string-rep 1 (- (.length string-rep) 1))
+            string-rep
+            )
+      )
+    )
   )
 
 (defn consume-token
@@ -164,8 +169,7 @@
   (or
     (match-char char-to-test array-element-delimiter-char)
     (match-char char-to-test array-end-token-char)
-    (match-char char-to-test null-char)
-    (match-char char-to-test quote-char))
+    (match-char char-to-test null-char))
   )
 
 (defn consume-scalar
@@ -182,7 +186,7 @@
   [input accumulator]
 
   (def next-char (read-char input))
-  (prn (str "pja: " (.toString next-char)))
+;  (prn (str "pja: " (.toString next-char)))
 
   (if (match-char next-char null-char)
 
