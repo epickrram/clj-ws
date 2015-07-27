@@ -185,19 +185,35 @@
     )
   )
 
+(defn debug-consume-scalar
+  [input accumulator]
+  (def value (consume-scalar input accumulator))
+  (prn (str "scalar: " value))
 
+  value
+  )
+
+(defn consume-end-of-object-token
+  [input]
+  (def next-char (read-char input))
+  (if (not (or (match-char next-char object-end-token-char) (match-char next-char null-char) (match-char next-char array-element-delimiter-char)))
+    (consume-end-of-object-token input)
+    )
+  )
 
 (defn pj
   [input-source state accumulator]
   (def input (clojure.java.io/reader input-source))
   (def next-char (read-char input))
 
+  (prn (str "state: " state ", char: " next-char " - " accumulator))
+
   (if (= state nil)
     (if (match-char next-char array-start-token-char)
       (pj input "array" [])
       (if (match-char next-char object-start-token-char)
         (pj input "object" {})
-        (typed-json-value (consume-scalar input (.toString next-char)))
+        (typed-json-value (debug-consume-scalar input (.toString next-char)))
         )
       )
     (if (= state "array")
@@ -211,20 +227,20 @@
             (concat accumulator [(pj input "array" accumulator)])
             (if (match-char next-char object-start-token-char)
               (do
-                (prn "Not handling json object inside array just yet")
-                nil)
+                (concat accumulator [(pj input "object" {})] (pj input "array" []))
+                )
               (do
-                (concat accumulator [(typed-json-value (consume-scalar input (.toString next-char)))] (pj input "array" [])))
+                (concat accumulator [(typed-json-value (debug-consume-scalar input (.toString next-char)))] (pj input "array" [])))
               )
             )
           )
         )
       (if (= state "object")
-        (if (match-char next-char null-char)
-          accumulator
+        (if (or (match-char next-char null-char) (match-char next-char array-element-delimiter-char) (match-char next-char array-end-token-char))
+            accumulator
 
           (do
-            (def map-key (typed-json-value (consume-scalar input (.toString next-char))))
+            (def map-key (typed-json-value (debug-consume-scalar input (.toString next-char))))
             (def updated-map (merge accumulator {map-key (pj input nil nil)}))
             (pj input "object" updated-map)
             )

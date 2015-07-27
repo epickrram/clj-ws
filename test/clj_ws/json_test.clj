@@ -81,7 +81,7 @@
         (pj (new java.io.StringReader "[1234, \"5678\", 0.3421, \"FOOBAR\", \"-3743.847\"]") nil nil)
         [1234, "5678", 0.3421, "FOOBAR", "-3743.847"]
         ))))
-;
+
 ;; TODO test that delimiter chars can be present in string values (ie. "foo,bar" is a valid string value)
 ;(deftest string-value-containing-delimiter-chars
 ;  (testing "string value containing delimiter chars"
@@ -110,9 +110,13 @@
         ))))
 
 
-
-
-
+(deftest parse-array-of-json-object
+  (testing "array-of-json-object"
+    (is
+      (=
+        (pj (new java.io.StringReader "[{\"a\": 1, \"b\": 3.14}, {\"c\": \"foobar\"}]") nil nil)
+        [{"a" 1 "b" 3.14} {"c" "foobar"}]
+        ))))
 
 
 
