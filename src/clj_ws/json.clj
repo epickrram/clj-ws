@@ -222,7 +222,7 @@
         )
       )
     (if (= state "array")
-      (if (or (match-char next-char null-char) (match-char next-char object-end-token-char))
+      (if (is-delimiter-char next-char)
 
         accumulator
 
