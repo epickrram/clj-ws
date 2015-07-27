@@ -118,7 +118,13 @@
         [{"a" 1 "b" 3.14} {"c" "foobar"}]
         ))))
 
-
+(deftest parse-nested-json-object
+  (testing "nested-json-object"
+    (is
+      (=
+        (pj (new java.io.StringReader "{\"a\": {\"foo\": 1234}}") nil nil)
+        {"a" {"foo" 1234}}
+        ))))
 
 
 

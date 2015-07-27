@@ -61,6 +61,7 @@
   [input depth state json-value value-builder]
   (def next-char (read-char input))
   (prn (str "json-value: " json-value ", in state: " state ", next-char: " next-char ", value-builder: " (.toString value-builder)))
+
   (case state
     "init" (if (.equals next-char object-start-token-char)
              (consume-token input (+ 1 depth) key-start {} value-builder)
@@ -213,7 +214,11 @@
       (pj input "array" [])
       (if (match-char next-char object-start-token-char)
         (pj input "object" {})
-        (typed-json-value (debug-consume-scalar input (.toString next-char)))
+        (if (re-matches whitespace-pattern (.toString next-char))
+          (pj input-source, state, accumulator)
+          (typed-json-value (debug-consume-scalar input (.toString next-char)))
+          )
+
         )
       )
     (if (= state "array")
@@ -236,7 +241,11 @@
           )
         )
       (if (= state "object")
-        (if (or (match-char next-char null-char) (match-char next-char array-element-delimiter-char) (match-char next-char array-end-token-char))
+        (if (or
+              (match-char next-char null-char)
+              (match-char next-char object-end-token-char)
+              (match-char next-char array-element-delimiter-char)
+              (match-char next-char array-end-token-char))
             accumulator
 
           (do
