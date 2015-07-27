@@ -127,6 +127,13 @@
         ))))
 
 
+(deftest parse-complex-object
+  (testing "complex-object"
+    (is
+      (=
+        (pj (new java.io.StringReader "{\"a\": [{\"foo\": 1234}, {\"arr\": [1, 2, \"str\", {\"c\": \"recur\"}]}]}") nil nil)
+        {"a" [{"foo" 1234} {"arr" [1 2 "str" {"c" "recur"}]}]}
+        ))))
 
 
 

@@ -222,7 +222,7 @@
         )
       )
     (if (= state "array")
-      (if (match-char next-char null-char)
+      (if (or (match-char next-char null-char) (match-char next-char object-end-token-char))
 
         accumulator
 
@@ -246,7 +246,7 @@
               (match-char next-char object-end-token-char)
               (match-char next-char array-element-delimiter-char)
               (match-char next-char array-end-token-char))
-            accumulator
+          accumulator
 
           (do
             (def map-key (typed-json-value (debug-consume-scalar input (.toString next-char))))
