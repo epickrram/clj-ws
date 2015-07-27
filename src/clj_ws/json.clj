@@ -241,11 +241,7 @@
           )
         )
       (if (= state "object")
-        (if (or
-              (match-char next-char null-char)
-              (match-char next-char object-end-token-char)
-              (match-char next-char array-element-delimiter-char)
-              (match-char next-char array-end-token-char))
+        (if (is-delimiter-char next-char)
           accumulator
 
           (do
