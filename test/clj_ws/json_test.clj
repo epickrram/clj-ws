@@ -37,15 +37,21 @@
         [1234, "5678", 0.3421, "FOOBAR", "-3743.847"]
         ))))
 
-;; TODO test that delimiter chars can be present in string values (ie. "foo,bar" is a valid string value)
-;(deftest string-value-containing-delimiter-chars
-;  (testing "string value containing delimiter chars"
-;      (is
-;        (=
-;          (pj (new java.io.StringReader "[\"a,b]c d\"]"))
-;          ["a,b]c d"]
-;          ))))
+(deftest string-value-containing-delimiter-chars
+  (testing "string value containing delimiter chars"
+      (is
+        (=
+          (pj (new java.io.StringReader "[\"a,b]c d\"]") nil nil)
+          ["a,b]c d"]
+          ))))
 
+(deftest string-value-containing-quote-chars
+  (testing "string value containing quote chars"
+    (is
+      (=
+        (pj (new java.io.StringReader "[\"'quote'\", \"\\\"value\\\"\"]") nil nil)
+        ["'quote'" "\"value\""]
+        ))))
 
 (deftest parse-simple-single-key-json-object
   (testing "simple-single-key-json-object"

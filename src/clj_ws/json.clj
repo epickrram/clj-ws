@@ -8,12 +8,13 @@
 (def array-end-token-char (Character/valueOf (.charAt "]" 0)))
 (def identifier-delimiter-token-char (Character/valueOf (.charAt ":" 0)))
 (def quote-char (Character/valueOf (.charAt "\"" 0)))
+(def backslash (Character/valueOf (.charAt "\\" 0)))
 (def array-element-delimiter-char (Character/valueOf (.charAt "," 0)))
 (def null-char (Character/valueOf (.charAt "\u0001" 0)))
 (def integer-pattern (re-pattern "^[0-9\\-]+$"))
 (def double-pattern (re-pattern "^[0-9\\.\\-]+$"))
 (def whitespace-pattern (re-pattern "[\\s]+"))
-(def string-pattern (re-pattern "^\"[^\"]+\"$"))
+(def string-pattern (re-pattern "^\".*\"$"))
 
 (defn read-char
   [input]
@@ -55,16 +56,63 @@
     (match-char char-to-test null-char))
   )
 
+'; exits on delimiters ,:], etc
+(defn identifier-terminator
+  [input]
+  )
+
+(defn last-char
+  [value]
+  (def value-length (.length (.trim value)))
+  (if (= value-length 0)
+    null-char
+    (do
+      (prn (str "substring(" (- value-length 1) ") of " value))
+      (prn (str "last-char: '" (.substring value (- value-length 1)) "'"))
+
+      (Character/valueOf (.charAt (.substring value (- value-length 1)) 0))
+      )
+    ))
+
+
 (defn consume-scalar
-  [input accumulator]
+  [input accumulator previous-char-was-backslash]
   (def next-char (read-char input))
+  (prn (str "consume-scalar, next-char: '" next-char "', prev backslash: "
+         previous-char-was-backslash ", accumulator: '" accumulator "'"))
+  ; needs to trim off previous backslash if next-char is " char
   (if (is-delimiter-char next-char)
     accumulator
     (if (= 0 (.length (.trim accumulator)))
-      (str next-char (consume-scalar input ""))
-      (str accumulator next-char (consume-scalar input ""))
+      ; TODO if next-char is backslash, don't pass it
+      (do
+        (def char-for-next
+          (if (= backslash next-char)
+            ""
+            next-char
+            )
+          )
+        (str char-for-next (consume-scalar input "" (= backslash next-char)))
+        )
+
+      (do
+        (def char-to-pass
+          (if (= next-char backslash)
+            ""
+            next-char
+            ))
+        (prn (str "char-to-pass: '" char-to-pass "'"))
+        (str accumulator char-to-pass (consume-scalar input "" (= backslash next-char)))
+        )
       )
     )
+  )
+
+
+(defn read-value
+  [input accumulator]
+  (prn (str "read-value accumulator: '" accumulator "'"))
+  (consume-scalar input accumulator (= backslash (last-char accumulator)))
   )
 
 ; TODO case statement for state
@@ -80,7 +128,7 @@
         (pj input "object" {})
         (if (re-matches whitespace-pattern (.toString next-char))
           (pj input-source, state, accumulator)
-          (typed-json-value (consume-scalar input (.toString next-char)))
+          (typed-json-value (read-value input (.toString next-char)))
           )
 
         )
@@ -99,7 +147,7 @@
                 (concat accumulator [(pj input "object" {})] (pj input "array" []))
                 )
               (do
-                (concat accumulator [(typed-json-value (consume-scalar input (.toString next-char)))] (pj input "array" [])))
+                (concat accumulator [(typed-json-value (read-value input (.toString next-char)))] (pj input "array" [])))
               )
             )
           )
@@ -109,7 +157,7 @@
           accumulator
 
           (do
-            (def map-key (typed-json-value (consume-scalar input (.toString next-char))))
+            (def map-key (typed-json-value (read-value input (.toString next-char))))
             (def updated-map (merge accumulator {map-key (pj input nil nil)}))
             (pj input "object" updated-map)
             )
