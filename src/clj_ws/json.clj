@@ -74,17 +74,25 @@
       )
     ))
 
+(defn is-currently-quoted
+  [next-char is-quoted]
+  (if (and is-quoted (not (= next-char quote-char)))
+    is-quoted
+    (if (and (not is-quoted) (= next-char quote-char))
+      true
+      false
+      )
+    )
+  )
 
 (defn consume-scalar
-  [input accumulator previous-char-was-backslash]
+  [input accumulator previous-char-was-backslash is-quoted]
   (def next-char (read-char input))
   (prn (str "consume-scalar, next-char: '" next-char "', prev backslash: "
-         previous-char-was-backslash ", accumulator: '" accumulator "'"))
-  ; needs to trim off previous backslash if next-char is " char
-  (if (is-delimiter-char next-char)
+         previous-char-was-backslash ", accumulator: '" accumulator "', is-quoted: " is-quoted))
+  (if (and (is-delimiter-char next-char) (not is-quoted))
     accumulator
     (if (= 0 (.length (.trim accumulator)))
-      ; TODO if next-char is backslash, don't pass it
       (do
         (def char-for-next
           (if (= backslash next-char)
@@ -92,7 +100,7 @@
             next-char
             )
           )
-        (str char-for-next (consume-scalar input "" (= backslash next-char)))
+        (str char-for-next (consume-scalar input "" (= backslash next-char) (is-currently-quoted next-char is-quoted)))
         )
 
       (do
@@ -102,7 +110,7 @@
             next-char
             ))
         (prn (str "char-to-pass: '" char-to-pass "'"))
-        (str accumulator char-to-pass (consume-scalar input "" (= backslash next-char)))
+        (str accumulator char-to-pass (consume-scalar input "" (= backslash next-char) (is-currently-quoted next-char is-quoted)))
         )
       )
     )
@@ -112,7 +120,8 @@
 (defn read-value
   [input accumulator]
   (prn (str "read-value accumulator: '" accumulator "'"))
-  (consume-scalar input accumulator (= backslash (last-char accumulator)))
+  (def is-quoted (= (Character/valueOf (.charAt accumulator 0)) quote-char))
+  (consume-scalar input accumulator (= backslash (last-char accumulator)) is-quoted)
   )
 
 ; TODO case statement for state
