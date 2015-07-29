@@ -19,11 +19,10 @@
 (defn read-char
   [input]
   (def int-value (.read input))
-  (if (== -1 int-value)
+  (if (= -1 int-value)
     null-char
     (Character/valueOf (char int-value)))
   )
-
 
 (defn typed-json-value
   [string-rep]
@@ -45,7 +44,6 @@
   (.equals expected actual)
   )
 
-
 (defn is-delimiter-char
   [char-to-test]
   (or
@@ -56,40 +54,26 @@
     (match-char char-to-test null-char))
   )
 
-'; exits on delimiters ,:], etc
-(defn identifier-terminator
-  [input]
-  )
-
 (defn last-char
   [value]
   (def value-length (.length (.trim value)))
   (if (= value-length 0)
     null-char
-    (do
-      ;      (prn (str "substring(" (- value-length 1) ") of " value))
-      ;      (prn (str "last-char: '" (.substring value (- value-length 1)) "'"))
-
-      (Character/valueOf (.charAt (.substring value (- value-length 1)) 0))
-      )
-    ))
+    (Character/valueOf (.charAt (.substring value (- value-length 1)) 0))
+    )
+  )
 
 (defn is-currently-quoted
   [next-char is-quoted]
   (if (and is-quoted (not (= next-char quote-char)))
     is-quoted
-    (if (and (not is-quoted) (= next-char quote-char))
-      true
-      false
-      )
+    (and (not is-quoted) (= next-char quote-char))
     )
   )
 
 (defn consume-scalar
   [input accumulator previous-char-was-backslash is-quoted]
   (def next-char (read-char input))
-  ;  (prn (str "consume-scalar, next-char: '" next-char "', prev backslash: "
-  ;         previous-char-was-backslash ", accumulator: '" accumulator "', is-quoted: " is-quoted))
   (if (and (is-delimiter-char next-char) (not is-quoted))
     accumulator
     (do
@@ -111,12 +95,9 @@
 
 (defn read-value
   [input accumulator]
-  ;  (prn (str "read-value accumulator: '" accumulator "'"))
   (def is-quoted (= (Character/valueOf (.charAt accumulator 0)) quote-char))
   (consume-scalar input accumulator (= backslash (last-char accumulator)) is-quoted)
   )
-
-; TODO case statement for state
 
 (defn pj
   [input-source state accumulator]
@@ -148,12 +129,8 @@
         (if (match-char next-char array-element-delimiter-char)
           (concat accumulator [(pj input "array" accumulator)])
           (if (match-char next-char object-start-token-char)
-            (do
-              (concat accumulator [(pj input "object" {})] (pj input "array" []))
-              )
-            (do
-              (concat accumulator [(typed-json-value (read-value input (.toString next-char)))] (pj input "array" [])))
-            )
+            (concat accumulator [(pj input "object" {})] (pj input "array" []))
+            (concat accumulator [(typed-json-value (read-value input (.toString next-char)))] (pj input "array" [])))
           )
         )
       )
