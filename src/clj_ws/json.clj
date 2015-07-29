@@ -122,7 +122,10 @@
   [input-source state accumulator]
   (def input (clojure.java.io/reader input-source))
   (def next-char (read-char input))
-  (if (= state nil)
+
+  (case state
+
+    nil
     (if (match-char next-char array-start-token-char)
       (pj input "array" [])
       (if (match-char next-char object-start-token-char)
@@ -134,35 +137,35 @@
 
         )
       )
-    (if (= state "array")
-      (if (is-delimiter-char next-char)
 
-        accumulator
+    "array"
+    (if (is-delimiter-char next-char)
 
-        (if (re-matches whitespace-pattern (.toString next-char))
-          (pj input "array" accumulator)
-          (if (match-char next-char array-element-delimiter-char)
-            (concat accumulator [(pj input "array" accumulator)])
-            (if (match-char next-char object-start-token-char)
-              (do
-                (concat accumulator [(pj input "object" {})] (pj input "array" []))
-                )
-              (do
-                (concat accumulator [(typed-json-value (read-value input (.toString next-char)))] (pj input "array" [])))
+      accumulator
+
+      (if (re-matches whitespace-pattern (.toString next-char))
+        (pj input "array" accumulator)
+        (if (match-char next-char array-element-delimiter-char)
+          (concat accumulator [(pj input "array" accumulator)])
+          (if (match-char next-char object-start-token-char)
+            (do
+              (concat accumulator [(pj input "object" {})] (pj input "array" []))
               )
+            (do
+              (concat accumulator [(typed-json-value (read-value input (.toString next-char)))] (pj input "array" [])))
             )
           )
         )
-      (if (= state "object")
-        (if (is-delimiter-char next-char)
-          accumulator
+      )
 
-          (do
-            (def map-key (typed-json-value (read-value input (.toString next-char))))
-            (def updated-map (merge accumulator {map-key (pj input nil nil)}))
-            (pj input "object" updated-map)
-            )
-          )
+    "object"
+    (if (is-delimiter-char next-char)
+      accumulator
+
+      (do
+        (def map-key (typed-json-value (read-value input (.toString next-char))))
+        (def updated-map (merge accumulator {map-key (pj input nil nil)}))
+        (pj input "object" updated-map)
         )
       )
     )
