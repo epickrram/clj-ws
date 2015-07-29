@@ -67,8 +67,8 @@
   (if (= value-length 0)
     null-char
     (do
-      (prn (str "substring(" (- value-length 1) ") of " value))
-      (prn (str "last-char: '" (.substring value (- value-length 1)) "'"))
+      ;      (prn (str "substring(" (- value-length 1) ") of " value))
+      ;      (prn (str "last-char: '" (.substring value (- value-length 1)) "'"))
 
       (Character/valueOf (.charAt (.substring value (- value-length 1)) 0))
       )
@@ -88,38 +88,30 @@
 (defn consume-scalar
   [input accumulator previous-char-was-backslash is-quoted]
   (def next-char (read-char input))
-  (prn (str "consume-scalar, next-char: '" next-char "', prev backslash: "
-         previous-char-was-backslash ", accumulator: '" accumulator "', is-quoted: " is-quoted))
+  ;  (prn (str "consume-scalar, next-char: '" next-char "', prev backslash: "
+  ;         previous-char-was-backslash ", accumulator: '" accumulator "', is-quoted: " is-quoted))
   (if (and (is-delimiter-char next-char) (not is-quoted))
     accumulator
-    (if (= 0 (.length (.trim accumulator)))
-      (do
-        (def char-for-next
+    (do
+      (def value-to-prepend
+        (if (= 0 (.length (.trim accumulator)))
           (if (= backslash next-char)
             ""
             next-char
             )
-          )
-        (str char-for-next (consume-scalar input "" (= backslash next-char) (is-currently-quoted next-char is-quoted)))
-        )
-
-      (do
-        (def char-to-pass
-          (if (= next-char backslash)
-            ""
-            next-char
+          (if (= backslash next-char)
+            accumulator
+            (str accumulator next-char)
             ))
-        (prn (str "char-to-pass: '" char-to-pass "'"))
-        (str accumulator char-to-pass (consume-scalar input "" (= backslash next-char) (is-currently-quoted next-char is-quoted)))
         )
+      (str value-to-prepend (consume-scalar input "" (= backslash next-char) (is-currently-quoted next-char is-quoted)))
       )
     )
   )
 
-
 (defn read-value
   [input accumulator]
-  (prn (str "read-value accumulator: '" accumulator "'"))
+  ;  (prn (str "read-value accumulator: '" accumulator "'"))
   (def is-quoted (= (Character/valueOf (.charAt accumulator 0)) quote-char))
   (consume-scalar input accumulator (= backslash (last-char accumulator)) is-quoted)
   )
