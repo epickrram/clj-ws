@@ -2,15 +2,20 @@
   ^{:author mark}
   clj-ws.json)
 
-(def object-start-token-char (Character/valueOf (.charAt "{" 0)))
-(def object-end-token-char (Character/valueOf (.charAt "}" 0)))
-(def array-start-token-char (Character/valueOf (.charAt "[" 0)))
-(def array-end-token-char (Character/valueOf (.charAt "]" 0)))
-(def identifier-delimiter-token-char (Character/valueOf (.charAt ":" 0)))
-(def quote-char (Character/valueOf (.charAt "\"" 0)))
-(def backslash (Character/valueOf (.charAt "\\" 0)))
-(def array-element-delimiter-char (Character/valueOf (.charAt "," 0)))
-(def null-char (Character/valueOf (.charAt "\u0001" 0)))
+(defn str-to-char
+  [str]
+  (Character/valueOf (.charAt str 0))
+  )
+
+(def object-start-token-char (str-to-char "{"))
+(def object-end-token-char (str-to-char "}"))
+(def array-start-token-char (str-to-char "["))
+(def array-end-token-char (str-to-char "]"))
+(def identifier-delimiter-token-char (str-to-char ":"))
+(def quote-char (str-to-char "\""))
+(def backslash (str-to-char "\\"))
+(def array-element-delimiter-char (str-to-char ","))
+(def null-char (str-to-char "\u0001"))
 (def integer-pattern (re-pattern "^[0-9\\-]+$"))
 (def double-pattern (re-pattern "^[0-9\\.\\-]+$"))
 (def whitespace-pattern (re-pattern "[\\s]+"))
@@ -62,7 +67,7 @@
   (def value-length (.length (.trim value)))
   (if (= value-length 0)
     null-char
-    (Character/valueOf (.charAt (.substring value (- value-length 1)) 0))
+    (str-to-char (.substring value (- value-length 1)))
     )
   )
 
@@ -98,7 +103,7 @@
 
 (defn read-value
   [input accumulator]
-  (def is-quoted (= (Character/valueOf (.charAt accumulator 0)) quote-char))
+  (def is-quoted (= (str-to-char accumulator) quote-char))
   (consume-scalar input accumulator (= backslash (last-char accumulator)) is-quoted)
   )
 
