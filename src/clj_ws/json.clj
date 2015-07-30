@@ -16,6 +16,9 @@
 (def whitespace-pattern (re-pattern "[\\s]+"))
 (def string-pattern (re-pattern "^\".*\"$"))
 
+(keyword :object)
+(keyword :array)
+
 (defn read-char
   [input]
   (def int-value (.read input))
@@ -108,9 +111,9 @@
 
     nil
     (if (match-char next-char array-start-token-char)
-      (pj input "array" [])
+      (pj input :array [])
       (if (match-char next-char object-start-token-char)
-        (pj input "object" {})
+        (pj input :object {})
         (if (re-matches whitespace-pattern (.toString next-char))
           (pj input-source, state, accumulator)
           (typed-json-value (read-value input (.toString next-char)))
@@ -119,30 +122,30 @@
         )
       )
 
-    "array"
+    :array
     (if (is-delimiter-char next-char)
 
       accumulator
 
       (if (re-matches whitespace-pattern (.toString next-char))
-        (pj input "array" accumulator)
+        (pj input :array accumulator)
         (if (match-char next-char array-element-delimiter-char)
-          (concat accumulator [(pj input "array" accumulator)])
+          (concat accumulator [(pj input :array accumulator)])
           (if (match-char next-char object-start-token-char)
-            (concat accumulator [(pj input "object" {})] (pj input "array" []))
-            (concat accumulator [(typed-json-value (read-value input (.toString next-char)))] (pj input "array" [])))
+            (concat accumulator [(pj input :object {})] (pj input :array []))
+            (concat accumulator [(typed-json-value (read-value input (.toString next-char)))] (pj input :array [])))
           )
         )
       )
 
-    "object"
+    :object
     (if (is-delimiter-char next-char)
       accumulator
 
       (do
         (def map-key (typed-json-value (read-value input (.toString next-char))))
         (def updated-map (merge accumulator {map-key (pj input nil nil)}))
-        (pj input "object" updated-map)
+        (pj input :object updated-map)
         )
       )
     )
