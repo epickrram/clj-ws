@@ -39,3 +39,12 @@
         (dispatch-request {"id" "request-id-1"} handler-map)
         :handler-error
         ))))
+
+(deftest trap-and-report-missing-request-id
+  (testing "trap and report missing request id"
+    (def handler-map {"request-id-1" cause-exception-function})
+    (is
+      (=
+        (dispatch-request {} handler-map)
+        :invalid-request
+        ))))
